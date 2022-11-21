@@ -1,10 +1,8 @@
-import {Router} from "express";
-import {
-    notifyEmail
-} from "../Services/notification.js";
+import { Router } from "express";
+import { notifyEmail } from "../Services/notification.js";
 
 const router = Router();
 
-router.get('/sendemail', notifyEmail);
+router.get("/sendemail", notifyEmail);
 
 export default router;

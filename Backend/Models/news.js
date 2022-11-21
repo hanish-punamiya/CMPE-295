@@ -1,25 +1,31 @@
 import mongoose from "mongoose";
+import Category from "./category.js";
+
 const Schema = mongoose.Schema;
 
 const userSchema = Schema({
-    first_name: {
-        type: String,
-        // required: true
+  text: {
+    type: String,
+    // required: true
+  },
+  source: {
+    type: String,
+    // required: true,
+    // max: 255
+  },
+  link: {
+    type: String,
+    // required: true,
+    // max: 255
+  },
+  categories: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Category",
     },
-    last_name: String,
-    email: {
-        type: String,
-        // required: true,
-        max: 255
-    },
-    password: {
-        type: String,
-        // required: true,
-        max: 1024,
-        min: 6
-    }
+  ],
 });
 
-const News = mongoose.model('News', userSchema)
+const News = mongoose.model("News", userSchema);
 
 export default News;

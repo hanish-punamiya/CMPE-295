@@ -1,25 +1,40 @@
 import mongoose from "mongoose";
+import News from "./news.js";
+import Category from "./category.js";
+
 const Schema = mongoose.Schema;
 
 const userSchema = Schema({
-    first_name: {
-        type: String,
-        // required: true
+  first_name: {
+    type: String,
+    // required: true
+  },
+  last_name: String,
+  email: {
+    type: String,
+    // required: true,
+    max: 255,
+  },
+  password: {
+    type: String,
+    // required: true,
+    max: 1024,
+    min: 6,
+  },
+  categories: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Category",
     },
-    last_name: String,
-    email: {
-        type: String,
-        // required: true,
-        max: 255
+  ],
+  favourites: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "News",
     },
-    password: {
-        type: String,
-        // required: true,
-        max: 1024,
-        min: 6
-    }
+  ],
 });
 
-const User = mongoose.model('User', userSchema)
+const User = mongoose.model("User", userSchema);
 
 export default User;

@@ -9,7 +9,6 @@ const userSchema = Schema({
     type: String,
     // required: true
   },
-  last_name: String,
   news: [
     {
       type: Schema.Types.ObjectId,

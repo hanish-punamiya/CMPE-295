@@ -1,11 +1,9 @@
 import { Router } from "express";
+import { updateUser, addFavourite, removeFavourite } from "../Services/user.js";
 import {
-  updateUser,
-  addFavourite,
-  removeFavourite,
   subscribeToCategories,
   unsubscribeFromCategories,
-} from "../Services/user.js";
+} from "../Services/category.js";
 
 const router = Router();
 

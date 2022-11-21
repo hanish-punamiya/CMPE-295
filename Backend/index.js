@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import User from "./Models/user.js";
 import authRoutes from "./Routes/auth.js";
 import notificationRoutes from "./Routes/notification.js";
+import newsRoutes from "./Routes/news.js";
 
 dotenv.config();
 const app = express();
@@ -27,6 +28,7 @@ app.use(
 // app.use('/api/user', userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/notify", notificationRoutes);
+app.use("/api/news", newsRoutes);
 // app.use('/api/dashboard', dashboardRoutes);
 // app.use('/api/note', noteRoutes);
 // app.use('/api/transaction', transactionRoutes);

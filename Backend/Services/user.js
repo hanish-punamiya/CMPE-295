@@ -11,6 +11,7 @@ export const addUser = async (req, res) => {
   try {
     if (!(await checkUser(req.body.email))) {
       const user = createEmptyUSer();
+      console.log(req.body);
       user.email = req.body.email;
       const password = await hashPassword(req.body.password);
       user.password = password;
@@ -79,39 +80,42 @@ export const authUser = async (req, res) => {
 };
 
 export const updateUser = async (req, res) => {
-    let data = null;
-    let error = null;
-    let statusCode = 200;
-  
-    try {
-      const userId = req.body.userId;
+  let data = null;
+  let error = null;
+  let statusCode = 200;
+
+  try {
+    const userId = req.body.userId;
     //   const user = await User.findById(userId);
-        const user = {
-            first_name: req.body.firstName,
-            last_name: req.body.lastname,
-            email: req.body.email,
-            password: await hashPassword(req.body.password),
-            favourites: req.body.favourites,
-            categories: req.body.categories,
-        };
+    const user = {
+      first_name: req.body.firstName,
+      last_name: req.body.lastname,
+      email: req.body.email,
+      password: await hashPassword(req.body.password),
+      favourites: req.body.favourites,
+      categories: req.body.categories,
+    };
 
-        console.log(user)
-        const updatedUser = await User.updateOne({
-            _id: req.body.userId
-        }, {
-            $set: user
-        });
+    console.log(user);
+    const updatedUser = await User.updateOne(
+      {
+        _id: req.body.userId,
+      },
+      {
+        $set: user,
+      }
+    );
 
-        data = {updatedUser}
-    } catch (err) {
-      error = err;
-      statusCode = 500;
-    }
-    res.status(statusCode).json({
-      data,
-      error,
-    });
-  };
+    data = { updatedUser };
+  } catch (err) {
+    error = err;
+    statusCode = 500;
+  }
+  res.status(statusCode).json({
+    data,
+    error,
+  });
+};
 
 export const addFavourite = async (req, res) => {
   let data = null;
@@ -140,94 +144,30 @@ export const addFavourite = async (req, res) => {
 };
 
 export const removeFavourite = async (req, res) => {
-    let data = null;
-    let error = null;
-    let statusCode = 200;
-  
-    try {
-      const userId = req.body.userId;
-      const favouriteNewsId = req.body.newsId;
-      const user = await User.findById(userId);
-      const updatedUser = await User.findByIdAndUpdate(userId, {
-        $pull: {
-          favourites: favouriteNewsId,
-        },
-      });
-  
-      data = { updatedUser };
-    } catch (err) {
-      error = err;
-      statusCode = 500;
-    }
-    res.status(statusCode).json({
-      data,
-      error,
+  let data = null;
+  let error = null;
+  let statusCode = 200;
+
+  try {
+    const userId = req.body.userId;
+    const favouriteNewsId = req.body.newsId;
+    const user = await User.findById(userId);
+    const updatedUser = await User.findByIdAndUpdate(userId, {
+      $pull: {
+        favourites: favouriteNewsId,
+      },
     });
-  };
 
-  export const subscribeToCategories = async (req, res) => {
-    let data = null;
-    let error = null;
-    let statusCode = 200;
-  
-    try {
-      const userId = req.body.userId;
-      const categoryId = req.body.categoryId;
-      const user = await User.findById(userId);
-      const updatedUser = await User.findByIdAndUpdate(userId, {
-        $addToSet: {
-          categories: [categoryId],
-        },
-      });
-
-      const updatedCategory = await User.findByIdAndUpdate(categoryId, {
-        $addToSet: {
-          users: [userId],
-        },
-      });
-
-      data = { updatedUser, updatedCategory };
-    } catch (err) {
-      error = err;
-      statusCode = 500;
-    }
-    res.status(statusCode).json({
-      data,
-      error,
-    });
-  };
-
-  export const unsubscribeFromCategories = async (req, res) => {
-    let data = null;
-    let error = null;
-    let statusCode = 200;
-  
-    try {
-      const userId = req.body.userId;
-      const categoryId = req.body.categoryId;
-      const user = await User.findById(userId);
-      const updatedUser = await User.findByIdAndUpdate(userId, {
-        $pull: {
-          categories: categoryId,
-        },
-      });
-
-      const updatedCategory = await User.findByIdAndUpdate(categoryId, {
-        $pull: {
-          users: userId,
-        },
-      });
-
-      data = { updatedUser, updatedCategory };
-    } catch (err) {
-      error = err;
-      statusCode = 500;
-    }
-    res.status(statusCode).json({
-      data,
-      error,
-    });
-  };
+    data = { updatedUser };
+  } catch (err) {
+    error = err;
+    statusCode = 500;
+  }
+  res.status(statusCode).json({
+    data,
+    error,
+  });
+};
 
 export const checkUser = async (email) => {
   try {

@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { getNews } from "../Services/news.js";
+import { acceptNews } from "../Services/news.js";
 
 const router = Router();
 
-router.post("/getnews", getNews);
+router.post("/acceptnews", acceptNews);
 // router.post("/addfavouritenews", addFavourite);
 // router.post("/removefavouritenews", removeFavourite);
 // router.post("/subscribecategories", subscribeToCategories);

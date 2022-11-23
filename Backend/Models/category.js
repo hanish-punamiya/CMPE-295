@@ -4,7 +4,7 @@ import User from "./user.js";
 
 const Schema = mongoose.Schema;
 
-const userSchema = Schema({
+const categorySchema = Schema({
   name: {
     type: String,
     // required: true
@@ -23,6 +23,6 @@ const userSchema = Schema({
   ],
 });
 
-const Category = mongoose.model("Category", userSchema);
+const Category = mongoose.model("Category", categorySchema);
 
 export default Category;

@@ -3,29 +3,35 @@ import Category from "./category.js";
 
 const Schema = mongoose.Schema;
 
-const userSchema = Schema({
-  text: {
-    type: String,
-    // required: true
-  },
-  source: {
-    type: String,
-    // required: true,
-    // max: 255
-  },
-  link: {
-    type: String,
-    // required: true,
-    // max: 255
-  },
-  categories: [
-    {
+const newsSchema = Schema(
+  {
+    text: {
+      type: String,
+    },
+    sourceName: {
+      type: String,
+    },
+    sourceUrl: {
+      type: String,
+    },
+    urls: [
+      {
+        type: String,
+      },
+    ],
+    category: {
       type: Schema.Types.ObjectId,
       ref: "Category",
     },
-  ],
-});
+    breaking: {
+      type: Boolean,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
-const News = mongoose.model("News", userSchema);
+const News = mongoose.model("News", newsSchema);
 
 export default News;

@@ -75,7 +75,7 @@ export const getNews = async (req, res) => {
   let statusCode = 200;
 
   try {
-    const news = await News.find();
+    const news = await News.find().populate('category');
     data = { news };
   } catch (err) {
     error = err;
@@ -121,7 +121,7 @@ export const getBreakingNews = async (req, res) => {
   let statusCode = 200;
 
   try {
-    const news = await News.find({ breaking: true });
+    const news = await News.find({ breaking: true }).populate('category');
     data = { news };
   } catch (err) {
     error = err;

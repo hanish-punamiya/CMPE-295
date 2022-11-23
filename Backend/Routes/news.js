@@ -5,7 +5,7 @@ const router = Router();
 
 router.get("/getnews", getNews);
 router.get("/getbreakingnews", getBreakingNews);
-router.post("/acceptnews", acceptNews);
+router.post("/acceptnews", acceptNews);//cmpe295-75b2f
 router.post("/getcategorynews", getCategoryNews);
 // router.post("/getcategoriesnews", getCategoriesNews);
 

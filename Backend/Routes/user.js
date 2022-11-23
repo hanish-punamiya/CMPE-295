@@ -1,16 +1,13 @@
 import { Router } from "express";
-import { updateUser, addFavourite, removeFavourite } from "../Services/user.js";
-import {
-  subscribeToCategories,
-  unsubscribeFromCategories,
-} from "../Services/category.js";
+import { updateUser, addFavourite, removeFavourite, addUser, authUser } from "../Services/user.js";
+import {updateCategories} from "../Services/category.js";
 
 const router = Router();
 
-router.post("/updateuser", updateUser);
+router.post("/createuser", addUser);
+router.post("/authuser", authUser);
+router.post("/updateusercategories", updateCategories);
 router.post("/addfavouritenews", addFavourite);
 router.post("/removefavouritenews", removeFavourite);
-router.post("/subscribecategories", subscribeToCategories);
-router.post("/unsubscribecategories", unsubscribeFromCategories);
 
 export default router;

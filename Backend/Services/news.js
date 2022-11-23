@@ -1,5 +1,6 @@
 import Category from "../Models/category.js";
 import News from "../Models/news.js";
+import { getCategoryIdFromName, addNewsToCategory } from "./category.js";
 
 export const acceptNews = async (req, res) => {
   let data = null;
@@ -20,13 +21,12 @@ export const acceptNews = async (req, res) => {
       news.sourceUrl = null;
       news.urls = [];
 
-      // console.log(typeof newsItem.urls)
-
       for (const urls of newsItem.entities.urls) {
         if (urls.expanded_url) {
           news.urls.push(urls.expanded_url);
         }
       }
+
       console.log(news.urls);
 
       const userDetails = newsItem.user_details;
@@ -38,31 +38,22 @@ export const acceptNews = async (req, res) => {
       console.log(news.sourceName);
       console.log(news.sourceUrl);
 
-      const categoryName = newsItem.news_category;
-      let categoryDetails = null;
-      if (categoryName) {
-        const filter = { name: categoryName };
-        categoryDetails = await Category.findOne(filter);
-        if (categoryDetails) {
-          news.category = categoryDetails._id;
-        }
-      }
+      const categoryId = await getCategoryIdFromName(newsItem.news_category);
+      console.log(categoryId);
+
+      if (categoryId) news.category = categoryId;
 
       let savedNews = await news.save();
       console.log(savedNews);
       savedNewsArray.push(savedNews);
 
       //check and update news category
-      if (categoryDetails) {
-        const update = { $push: { news: savedNews._id } };
-        const updatedCategory = await Category.findByIdAndUpdate(
-          categoryDetails._id,
-          update,
-          {
-            new: true,
-          }
+      if (categoryId) {
+        const updatedCategory = await addNewsToCategory(
+          savedNews._id,
+          categoryId
         );
-        console.log(updatedCategory);
+        if (!updatedCategory) throw "Category not updated successfully";
       }
     }
 
@@ -70,6 +61,71 @@ export const acceptNews = async (req, res) => {
   } catch (err) {
     console.log(err);
     error = err;
+    statusCode = 500;
+  }
+  res.status(statusCode).json({
+    data,
+    error,
+  });
+};
+
+export const getNews = async (req, res) => {
+  let data = null;
+  let error = null;
+  let statusCode = 200;
+
+  try {
+    const news = await News.find();
+    data = { news };
+  } catch (err) {
+    error = err;
+    console.log(error);
+    statusCode = 500;
+  }
+  res.status(statusCode).json({
+    data,
+    error,
+  });
+};
+
+export const getCategoryNews = async (req, res) => {
+  let data = null;
+  let error = null;
+  let statusCode = 200;
+
+  try {
+    const categoryNames = req.body.categories;
+    const categoryIds = [];
+    for (const categoryName of categoryNames) {
+      categoryIds.push(await getCategoryIdFromName(categoryName));
+    }
+    console.log(categoryIds);
+    const news = await News.find({
+      category: { $in: categoryIds },
+    }).populate("category");
+    data = { news };
+  } catch (err) {
+    error = err;
+    console.log(error);
+    statusCode = 500;
+  }
+  res.status(statusCode).json({
+    data,
+    error,
+  });
+};
+
+export const getBreakingNews = async (req, res) => {
+  let data = null;
+  let error = null;
+  let statusCode = 200;
+
+  try {
+    const news = await News.find({ breaking: true });
+    data = { news };
+  } catch (err) {
+    error = err;
+    console.log(error);
     statusCode = 500;
   }
   res.status(statusCode).json({

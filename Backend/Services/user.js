@@ -2,6 +2,8 @@ import User from "../Models/user.js";
 // import jwt from "jsonwebtoken"
 import mongoose from "mongoose";
 import { hashPassword, validatePassword } from "../Utilities/hashing.js";
+import Category from "../Models/category.js";
+import { getCategoryIdFromName, addUserToCategory } from "./category.js";
 
 //Registers a new user.
 export const addUser = async (req, res) => {
@@ -15,10 +17,21 @@ export const addUser = async (req, res) => {
       user.email = req.body.email;
       const password = await hashPassword(req.body.password);
       user.password = password;
-      const name = req.body.name.split(" ");
-      user.first_name = name[0];
-      if (name[1]) user.last_name = name[1];
-      const savedUser = await user.save();
+      user.name = req.body.name;
+
+      const categoryIds = [];
+      for (const categoryName of req.body.categories) {
+        const categoryId = await getCategoryIdFromName(categoryName);
+        if (categoryId) categoryIds.push(categoryId);
+      }
+      user.categories = categoryIds;
+      let savedUser = await user.save();
+      await savedUser.populate("categories");
+
+      for (const categoryId of categoryIds) {
+        await addUserToCategory(savedUser._id, categoryId);
+      }
+
       data = { savedUser };
     } else {
       error = "Email Id is already registered!";
@@ -48,6 +61,7 @@ export const authUser = async (req, res) => {
     if (user) {
       if (await validatePassword(req.body.password, user.password)) {
         auth = true;
+        await (await user.populate('categories')).populate('favourites');
         data = { user };
         // const token = jwt.sign({
         //     _id: user._id
@@ -125,11 +139,9 @@ export const addFavourite = async (req, res) => {
   try {
     const userId = req.body.userId;
     const favouriteNewsId = req.body.newsId;
-    const user = await User.findById(userId);
-    const updatedUser = await User.findByIdAndUpdate(userId, {
-      $addToSet: {
-        favourites: [favouriteNewsId],
-      },
+    const update = { $addToSet: { favourites: [favouriteNewsId] } };
+    const updatedUser = await User.findByIdAndUpdate(userId, update, {
+      new: true,
     });
 
     data = { updatedUser };
@@ -151,11 +163,9 @@ export const removeFavourite = async (req, res) => {
   try {
     const userId = req.body.userId;
     const favouriteNewsId = req.body.newsId;
-    const user = await User.findById(userId);
-    const updatedUser = await User.findByIdAndUpdate(userId, {
-      $pull: {
-        favourites: favouriteNewsId,
-      },
+    const update = { $pull: { favourites: favouriteNewsId } };
+    const updatedUser = await User.findByIdAndUpdate(userId, update, {
+      new: true,
     });
 
     data = { updatedUser };
@@ -167,6 +177,34 @@ export const removeFavourite = async (req, res) => {
     data,
     error,
   });
+};
+
+export const addCategoryToUser = async (categoryId, userId) => {
+  try {
+    const update = { $push: { categories: categoryId } };
+    const updatedUser = await User.findByIdAndUpdate(userId, update, {
+      new: true,
+    });
+    console.log("add: updated user: " + updatedUser);
+    return updatedUser;
+  } catch (err) {
+    console.log(err);
+  }
+  return null;
+};
+
+export const removeCategoryFromUser = async (categoryId, userId) => {
+  try {
+    const update = { $pull: { categories: categoryId } };
+    const updatedUser = await User.findByIdAndUpdate(userId, update, {
+      new: true,
+    });
+    console.log("remove: updated user: " + updatedUser);
+    return updatedUser;
+  } catch (err) {
+    console.log(err);
+  }
+  return null;
 };
 
 export const checkUser = async (email) => {
@@ -181,8 +219,7 @@ export const checkUser = async (email) => {
 
 export const createEmptyUSer = () => {
   const user = new User({
-    first_name: "",
-    last_name: "",
+    name: "",
     email: "",
     password: "",
     categories: [],

@@ -3,8 +3,8 @@ import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
 import User from "./Models/user.js";
-import authRoutes from "./Routes/auth.js";
 import notificationRoutes from "./Routes/notification.js";
+import userRoutes from "./Routes/user.js";
 import newsRoutes from "./Routes/news.js";
 
 dotenv.config();
@@ -26,8 +26,8 @@ app.use(
 // app.use(cookieParser(process.env.TOKEN_SECRET))
 
 // app.use('/api/user', userRoutes);
-app.use("/api/auth", authRoutes);
 app.use("/api/notify", notificationRoutes);
+app.use("/api/user", userRoutes);
 app.use("/api/news", newsRoutes);
 // app.use('/api/dashboard', dashboardRoutes);
 // app.use('/api/note', noteRoutes);

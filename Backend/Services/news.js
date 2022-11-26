@@ -48,12 +48,12 @@ export const acceptNews = async (req, res) => {
       console.log(news.sourceName);
       console.log(news.sourceUrl);
 
+      let categoryId = null;
       if (newsItem.news_category) {
-        const categoryId = await getCategoryIdFromName(newsItem.news_category);
+        categoryId = await getCategoryIdFromName(newsItem.news_category);
         console.log(categoryId);
+        if (categoryId) news.category = categoryId;
       }
-
-      if (categoryId) news.category = categoryId;
 
       let savedNews = await news.save();
       console.log(savedNews);

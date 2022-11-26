@@ -14,16 +14,26 @@ export const acceptNews = async (req, res) => {
       const news = new News();
 
       //save the new news
-      news.text = newsItem.display_text;
-      news.breaking = newsItem.breaking;
+      news.text = "";
+      if (newsItem.display_text) {
+        news.text = newsItem.display_text;
+      }
+      news.breaking = false;
+      if (newsItem.breaking) {
+        news.breaking = newsItem.breaking;
+      }
       news.category = null;
       news.sourceName = null;
       news.sourceUrl = null;
       news.urls = [];
 
-      for (const urls of newsItem.entities.urls) {
-        if (urls.expanded_url) {
-          news.urls.push(urls.expanded_url);
+      if (newsItem.entities) {
+        if (newsItem.entities.urls) {
+          for (const urls of newsItem.entities.urls) {
+            if (urls.expanded_url) {
+              news.urls.push(urls.expanded_url);
+            }
+          }
         }
       }
 
@@ -38,8 +48,10 @@ export const acceptNews = async (req, res) => {
       console.log(news.sourceName);
       console.log(news.sourceUrl);
 
-      const categoryId = await getCategoryIdFromName(newsItem.news_category);
-      console.log(categoryId);
+      if (newsItem.news_category) {
+        const categoryId = await getCategoryIdFromName(newsItem.news_category);
+        console.log(categoryId);
+      }
 
       if (categoryId) news.category = categoryId;
 
@@ -75,7 +87,7 @@ export const getNews = async (req, res) => {
   let statusCode = 200;
 
   try {
-    const news = await News.find().populate('category');
+    const news = await News.find().populate("category");
     data = { news };
   } catch (err) {
     error = err;
@@ -121,7 +133,7 @@ export const getBreakingNews = async (req, res) => {
   let statusCode = 200;
 
   try {
-    const news = await News.find({ breaking: true }).populate('category');
+    const news = await News.find({ breaking: true }).populate("category");
     data = { news };
   } catch (err) {
     error = err;

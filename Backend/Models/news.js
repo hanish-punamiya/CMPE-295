@@ -26,6 +26,9 @@ const newsSchema = Schema(
     breaking: {
       type: Boolean,
     },
+    tweet_url: {
+      type: String,
+    },
   },
   {
     timestamps: true,

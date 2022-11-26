@@ -25,7 +25,12 @@ export const acceptNews = async (req, res) => {
       news.category = null;
       news.sourceName = null;
       news.sourceUrl = null;
+      news.tweetUrl = null;
       news.urls = [];
+
+      if (newsItem.tweet_url) {
+        news.tweetUrl = newsItem.tweet_url;
+      }
 
       if (newsItem.entities) {
         if (newsItem.entities.urls) {

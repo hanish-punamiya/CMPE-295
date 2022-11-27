@@ -43,7 +43,7 @@ app.get("/", (req, res) => {
 
 async function mongoConnect() {
   try {
-    await mongoose.connect(process.env.DB_CONNECTION, {
+    await mongoose.connect(`mongodb+srv://hanish:hanish@cluster0.fzmbcsj.mongodb.net/END?retryWrites=true&w=majority`, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
@@ -54,6 +54,6 @@ async function mongoConnect() {
 }
 
 mongoConnect();
-app.listen(process.env.PORT, () =>
-  console.log(`server started on port ${process.env.PORT}`)
+app.listen(5000, () =>
+  console.log(`server started on port 5000`)
 );

@@ -26,7 +26,19 @@ const newsSchema = Schema(
     breaking: {
       type: Boolean,
     },
-    tweet_url: {
+    tweetUrl: {
+      type: String,
+    },
+    retweetCount: {
+      type: String,
+    },
+    likeCount: {
+      type: String,
+    },
+    replyCount: {
+      type: String,
+    },
+    quoteCount: {
       type: String,
     },
   },

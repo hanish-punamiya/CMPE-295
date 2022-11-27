@@ -20,13 +20,15 @@ export const addUser = async (req, res) => {
       user.name = req.body.name;
 
       const categoryIds = [];
-      for (const categoryName of req.body.categories) {
-        const categoryId = await getCategoryIdFromName(categoryName);
-        if (categoryId) categoryIds.push(categoryId);
+      if (req.body.categories) {
+        for (const categoryName of req.body.categories) {
+          const categoryId = await getCategoryIdFromName(categoryName);
+          if (categoryId) categoryIds.push(categoryId);
+        }
       }
       user.categories = categoryIds;
       let savedUser = await user.save();
-      await savedUser.populate("categories");
+      await savedUser.populate("categories", "-news");
 
       for (const categoryId of categoryIds) {
         await addUserToCategory(savedUser._id, categoryId);
@@ -61,17 +63,10 @@ export const authUser = async (req, res) => {
     if (user) {
       if (await validatePassword(req.body.password, user.password)) {
         auth = true;
-        await (await user.populate('categories')).populate('favourites');
+        await (
+          await user.populate("categories", "-news")
+        ).populate("favourites");
         data = { user };
-        // const token = jwt.sign({
-        //     _id: user._id
-        // }, process.env.TOKEN_SECRET)
-        // res.header('auth_token', token);
-        // data = {
-        //     user,
-        //     token
-        // };
-        // await user.populate("groups").execPopulate();
       } else {
         statusCode = 401;
         error = "Incorrect Credentials";
@@ -80,6 +75,33 @@ export const authUser = async (req, res) => {
       error = "Email not found";
       statusCode = 404;
     }
+  } catch (err) {
+    console.log(err);
+    statusCode = 500;
+    auth = false;
+    error = err;
+  }
+  res.status(statusCode).json({
+    data,
+    error,
+    auth,
+  });
+};
+
+export const getUser = async (req, res) => {
+  let auth = false;
+  let data = null;
+  let error = null;
+  let statusCode = 200;
+  try {
+    const userId = req.body.userId;
+    const user = await User.findById(userId)
+      .populate("categories", "-news")
+      .populate({
+        path: "favourites",
+        populate: { path: "category", select: "name" },
+      });
+    data = { user };
   } catch (err) {
     console.log(err);
     statusCode = 500;

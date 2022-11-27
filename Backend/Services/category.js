@@ -10,7 +10,8 @@ export const updateCategories = async (req, res) => {
   try {
     console.log(req.body);
     const userId = req.body.userId;
-    const user = await User.findById(userId).populate("categories");
+    const user = await User.findById(userId).populate("categories", "-news");
+    console.log(user);
     const updatedCategoryNames = req.body.categories;
     const currentCategoryNames = user.categories.map(
       (category) => category.name
@@ -19,18 +20,21 @@ export const updateCategories = async (req, res) => {
     for (const categoryName of updatedCategoryNames) {
       if (!currentCategoryNames.includes(categoryName)) {
         const categoryId = await getCategoryIdFromName(categoryName);
-        await subscribeToCategory(userId, categoryId);
+        if (categoryId) await subscribeToCategory(userId, categoryId);
       }
     }
 
     for (const categoryName of currentCategoryNames) {
       if (!updatedCategoryNames.includes(categoryName)) {
         const categoryId = await getCategoryIdFromName(categoryName);
-        await unsubscribeFromCategory(userId, categoryId);
+        if (categoryId) await unsubscribeFromCategory(userId, categoryId);
       }
     }
 
-    const updatedUser = await User.findById(userId).populate("categories");
+    const updatedUser = await User.findById(userId).populate(
+      "categories",
+      "-news"
+    );
 
     data = { updatedUser };
   } catch (err) {

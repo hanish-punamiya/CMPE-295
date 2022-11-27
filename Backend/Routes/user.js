@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { updateUser, addFavourite, removeFavourite, addUser, authUser } from "../Services/user.js";
+import { getUser, addFavourite, removeFavourite, addUser, authUser } from "../Services/user.js";
 import {updateCategories} from "../Services/category.js";
 
 const router = Router();
@@ -9,5 +9,6 @@ router.post("/authuser", authUser);
 router.post("/updateusercategories", updateCategories);
 router.post("/addfavouritenews", addFavourite);
 router.post("/removefavouritenews", removeFavourite);
+router.post("/getuser", getUser);
 
 export default router;

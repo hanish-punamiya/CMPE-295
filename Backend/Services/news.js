@@ -1,6 +1,8 @@
 import Category from "../Models/category.js";
 import News from "../Models/news.js";
+import User from "../Models/user.js";
 import { getCategoryIdFromName, addNewsToCategory } from "./category.js";
+import { buildEmailHTML, notifyEmail } from "./notification.js";
 
 export const acceptNews = async (req, res) => {
   let data = null;
@@ -11,63 +13,66 @@ export const acceptNews = async (req, res) => {
     const newsArray = req.body;
     const savedNewsArray = [];
     for (const newsItem of newsArray) {
-      const news = new News();
+      // const news = new News();
 
-      //save the new news
-      news.text = "";
-      news.breaking = false;
-      news.category = null;
-      news.sourceName = null;
-      news.sourceUrl = null;
-      news.tweetUrl = null;
-      news.urls = [];
-      news.retweetCount = 0;
-      news.likeCount = 0;
-      news.replyCount = 0;
-      news.quoteCount = 0;
+      // //save the new news
+      // news.text = "";
+      // news.breaking = false;
+      // news.category = null;
+      // news.sourceName = null;
+      // news.sourceUrl = null;
+      // news.tweetUrl = null;
+      // news.urls = [];
+      // news.retweetCount = 0;
+      // news.likeCount = 0;
+      // news.replyCount = 0;
+      // news.quoteCount = 0;
 
-      if (newsItem.display_text) news.text = newsItem.display_text;
-      if (newsItem.breaking) news.breaking = newsItem.breaking;
-      if (newsItem.tweet_url) news.tweetUrl = newsItem.tweet_url;
+      // if (newsItem.display_text) news.text = newsItem.display_text;
+      // if (newsItem.breaking) news.breaking = newsItem.breaking;
+      // if (newsItem.tweet_url) news.tweetUrl = newsItem.tweet_url;
 
-      if (newsItem.entities) {
-        if (newsItem.entities.urls) {
-          for (const urls of newsItem.entities.urls) {
-            if (urls.expanded_url) {
-              news.urls.push(urls.expanded_url);
-            }
-          }
-        }
-      }
+      // if (newsItem.entities) {
+      //   if (newsItem.entities.urls) {
+      //     for (const urls of newsItem.entities.urls) {
+      //       if (urls.expanded_url) {
+      //         news.urls.push(urls.expanded_url);
+      //       }
+      //     }
+      //   }
+      // }
 
-      console.log(news.urls);
+      // console.log(news.urls);
 
-      const userDetails = newsItem.user_details;
-      if (userDetails) {
-        if (userDetails.name) news.sourceName = userDetails.name;
-        if (userDetails.user_url) news.sourceUrl = userDetails.user_url;
-      }
+      // const userDetails = newsItem.user_details;
+      // if (userDetails) {
+      //   if (userDetails.name) news.sourceName = userDetails.name;
+      //   if (userDetails.user_url) news.sourceUrl = userDetails.user_url;
+      // }
 
-      console.log(news.sourceName);
-      console.log(news.sourceUrl);
+      // console.log(news.sourceName);
+      // console.log(news.sourceUrl);
 
-      if (newsItem.public_metrics) {
-        if (newsItem.public_metrics.retweet_count)
-          news.retweetCount = newsItem.public_metrics.retweet_count;
-        if (newsItem.public_metrics.like_count)
-          news.likeCount = newsItem.public_metrics.like_count;
-        if (newsItem.public_metrics.reply_count)
-          news.replyCount = newsItem.public_metrics.reply_count;
-        if (newsItem.public_metrics.quote_count)
-          news.quoteCount = newsItem.public_metrics.quote_count;
-      }
+      // if (newsItem.public_metrics) {
+      //   if (newsItem.public_metrics.retweet_count)
+      //     news.retweetCount = newsItem.public_metrics.retweet_count;
+      //   if (newsItem.public_metrics.like_count)
+      //     news.likeCount = newsItem.public_metrics.like_count;
+      //   if (newsItem.public_metrics.reply_count)
+      //     news.replyCount = newsItem.public_metrics.reply_count;
+      //   if (newsItem.public_metrics.quote_count)
+      //     news.quoteCount = newsItem.public_metrics.quote_count;
+      // }
 
-      let categoryId = null;
-      if (newsItem.news_category) {
-        categoryId = await getCategoryIdFromName(newsItem.news_category);
-        console.log(categoryId);
-        if (categoryId) news.category = categoryId;
-      }
+      // let categoryId = null;
+      // if (newsItem.news_category) {
+      //   categoryId = await getCategoryIdFromName(newsItem.news_category);
+      //   console.log(categoryId);
+      //   if (categoryId) news.category = categoryId;
+      // }
+
+      const news = await setNewsItem(newsItem);
+      const categoryId = news.category;
 
       let savedNews = await news.save();
       console.log(savedNews);
@@ -80,6 +85,24 @@ export const acceptNews = async (req, res) => {
           categoryId
         );
         if (!updatedCategory) throw "Category not updated successfully";
+      }
+    }
+
+    const newsToSend = [];
+
+    for (const savedNewsItem of savedNewsArray) {
+      if (savedNewsItem.breaking) newsToSend.push(savedNewsItem);
+    }
+
+    const userList = await User.find();
+
+    if (userList) {
+      if (userList.length) {
+        for (const userDetails of userList) {
+          await notifyEmail(
+            await buildEmailHTML(newsToSend, userDetails.email)
+          );
+        }
       }
     }
 
@@ -101,7 +124,10 @@ export const getNews = async (req, res) => {
   let statusCode = 200;
 
   try {
-    const news = await News.find().populate("category", "-news").limit(300).sort("-createdAt");
+    const news = await News.find()
+      .populate("category", "-news")
+      .limit(300)
+      .sort("-createdAt");
     data = { news };
   } catch (err) {
     error = err;
@@ -184,12 +210,13 @@ export const getFilteredNews = async (req, res) => {
       categoryIds.push(await getCategoryIdFromName(categoryName));
     }
     const filter = {};
-    if (categoryIds) filter["category"] = { $in: categoryIds };
+    if (categoryIds.length) filter["category"] = { $in: categoryIds };
     if (breaking) filter["breaking"] = true;
     console.log(filter);
     const news = await News.find(filter)
       .populate("category", "-news")
-      .limit(200).sort("-createdAt");
+      .limit(500)
+      .sort("-createdAt");
 
     data = { news };
   } catch (err) {
@@ -201,4 +228,87 @@ export const getFilteredNews = async (req, res) => {
     data,
     error,
   });
+};
+
+export const getTopNews = async (req, res) => {
+  let data = null;
+  let error = null;
+  let statusCode = 200;
+
+  try {
+    // const top = req.body.number;
+    const news = await News.find()
+      .populate("category", "-news")
+      .limit(10)
+      .sort({ retweetCount: -1, createdAt: -1 });
+    data = { news };
+  } catch (err) {
+    error = err;
+    console.log(error);
+    statusCode = 500;
+  }
+  res.status(statusCode).json({
+    data,
+    error,
+  });
+};
+
+const setNewsItem = async (newsItem) => {
+  const news = new News();
+
+  news.text = "";
+  news.breaking = false;
+  news.category = null;
+  news.sourceName = null;
+  news.sourceUrl = null;
+  news.tweetUrl = null;
+  news.urls = [];
+  news.retweetCount = 0;
+  news.likeCount = 0;
+  news.replyCount = 0;
+  news.quoteCount = 0;
+
+  if (newsItem.display_text) news.text = newsItem.display_text;
+  if (newsItem.breaking) news.breaking = newsItem.breaking;
+  if (newsItem.tweet_url) news.tweetUrl = newsItem.tweet_url;
+
+  if (newsItem.entities) {
+    if (newsItem.entities.urls) {
+      for (const urls of newsItem.entities.urls) {
+        if (urls.expanded_url) {
+          news.urls.push(urls.expanded_url);
+        }
+      }
+    }
+  }
+
+  console.log(news.urls);
+
+  const userDetails = newsItem.user_details;
+  if (userDetails) {
+    if (userDetails.name) news.sourceName = userDetails.name;
+    if (userDetails.user_url) news.sourceUrl = userDetails.user_url;
+  }
+
+  console.log(news.sourceName);
+  console.log(news.sourceUrl);
+
+  if (newsItem.public_metrics) {
+    if (newsItem.public_metrics.retweet_count)
+      news.retweetCount = newsItem.public_metrics.retweet_count;
+    if (newsItem.public_metrics.like_count)
+      news.likeCount = newsItem.public_metrics.like_count;
+    if (newsItem.public_metrics.reply_count)
+      news.replyCount = newsItem.public_metrics.reply_count;
+    if (newsItem.public_metrics.quote_count)
+      news.quoteCount = newsItem.public_metrics.quote_count;
+  }
+
+  if (newsItem.news_category) {
+    const categoryId = await getCategoryIdFromName(newsItem.news_category);
+    console.log(categoryId);
+    if (categoryId) news.category = categoryId;
+  }
+
+  return news;
 };

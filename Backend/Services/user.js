@@ -13,7 +13,6 @@ export const addUser = async (req, res) => {
   try {
     if (!(await checkUser(req.body.email))) {
       const user = createEmptyUSer();
-      console.log(req.body);
       user.email = req.body.email;
       const password = await hashPassword(req.body.password);
       user.password = password;

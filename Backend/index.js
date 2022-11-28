@@ -2,6 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import bodyParser from "body-parser";
+import nodemailer from "nodemailer"
 import dotenv from "dotenv";
 import User from "./Models/user.js";
 import notificationRoutes from "./Routes/notification.js";

@@ -1,6 +1,7 @@
 import Category from "../Models/category.js";
 import News from "../Models/news.js";
 import User from "../Models/user.js";
+import { sendMail } from "../Utilities/nodemailer.js";
 import { getCategoryIdFromName, addNewsToCategory } from "./category.js";
 import { buildEmailHTML, notifyEmail } from "./notification.js";
 
@@ -94,14 +95,21 @@ export const acceptNews = async (req, res) => {
       if (savedNewsItem.breaking) newsToSend.push(savedNewsItem);
     }
 
-    const userList = await User.find();
+    if (newsToSend.length) {
+      const userList = await User.find();
 
-    if (userList) {
-      if (userList.length) {
-        for (const userDetails of userList) {
-          await notifyEmail(
-            await buildEmailHTML(newsToSend), userDetails.email
-          );
+      if (userList) {
+        if (userList.length) {
+          // for (const userDetails of userList) {
+          //   await notifyEmail(
+          //     await buildEmailHTML(newsToSend), userDetails.email
+          //   );
+          const emailAddresses = [];
+          for (const userDetails of userList) {
+            emailAddresses.push(userDetails.email);
+          }
+          const messageBody = await buildEmailHTML(newsToSend);
+          await sendMail(messageBody, emailAddresses);
         }
       }
     }

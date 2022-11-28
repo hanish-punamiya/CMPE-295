@@ -75,7 +75,7 @@ export const acceptNews = async (req, res) => {
       const categoryId = news.category;
 
       let savedNews = await news.save();
-      console.log(savedNews);
+      await savedNews.populate("category", "-news");
       savedNewsArray.push(savedNews);
 
       //check and update news category
@@ -100,7 +100,7 @@ export const acceptNews = async (req, res) => {
       if (userList.length) {
         for (const userDetails of userList) {
           await notifyEmail(
-            await buildEmailHTML(newsToSend, userDetails.email)
+            await buildEmailHTML(newsToSend), userDetails.email
           );
         }
       }

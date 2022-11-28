@@ -15,8 +15,7 @@ export const sendMail = async (messageBody, emailAddresses) => {
     to: emailAddresses, // list of receivers
     subject: "Breaking News!",
     text: "Breaking News",
-    html: `<b>Hey there! </b>
-                       <br> This is our first message sent with Nodemailer<br/>`,
+    html: messageBody,
   };
 
   transporter.sendMail(mailData, function (err, info) {

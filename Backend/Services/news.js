@@ -94,14 +94,17 @@ export const acceptNews = async (req, res) => {
       if (savedNewsItem.breaking) newsToSend.push(savedNewsItem);
     }
 
-    const userList = await User.find();
+    if (newsToSend.length) {
+      const userList = await User.find();
 
-    if (userList) {
-      if (userList.length) {
-        for (const userDetails of userList) {
-          await notifyEmail(
-            await buildEmailHTML(newsToSend), userDetails.email
-          );
+      if (userList) {
+        if (userList.length) {
+          for (const userDetails of userList) {
+            await notifyEmail(
+              await buildEmailHTML(newsToSend),
+              userDetails.email
+            );
+          }
         }
       }
     }

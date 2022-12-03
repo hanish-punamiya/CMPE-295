@@ -1,4 +1,4 @@
-# CMPE-273-Lab-2
+# CMPE-295
 
 Please run npm install in both directories to install the dependencies.
 

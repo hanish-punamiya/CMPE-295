@@ -240,7 +240,7 @@ export const getTopNews = async (req, res) => {
 
   try {
     // const top = req.body.number;
-    const news = await News.find()
+    const news = await News.find({breaking : true})
       .populate("category", "-news")
       .limit(10)
       .sort({ retweetCount: -1, createdAt: -1 });

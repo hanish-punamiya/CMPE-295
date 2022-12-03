@@ -16,7 +16,6 @@ import Card from "react-bootstrap/Card";
 import Dropdown from "react-bootstrap/Dropdown";
 
 const News = ({ news }) => {
-
   const isBreaking = () => {
     if (news.breaking)
       return (
@@ -38,6 +37,18 @@ const News = ({ news }) => {
           </Row>
         </Card.Header>
       );
+    else {
+      return (
+        <Card.Header>
+          <Row>
+            <Col style={{ textAlign: "left" }}>
+              <b>{"None"}</b>
+            </Col>
+            {isBreaking()}
+          </Row>
+        </Card.Header>
+      );
+    }
   };
 
   const displayTextDetails = () => {
